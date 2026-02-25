@@ -1,0 +1,21 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - WORKER_API_URL=http://worker:8787
+    restart: always
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    ports:
+      - "8787:8787"
+    environment:
+      - NODE_ENV=development
+    restart: always

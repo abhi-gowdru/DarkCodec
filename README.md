@@ -41,6 +41,11 @@ graph TD
 
 - **Client-Side AES-256-GCM**: Data is encrypted *before* it leaves your browser. The decryption key is passed in the URL fragment (`#`), which is never sent to the server.
 - **Invisible Bot Protection**: Integrated with **Cloudflare Turnstile** to prevent automated abuse.
+- **Privacy Screen Protection**:
+    - **Blur on Inactive**: The view page automatically blurs content when the window loses focus.
+    - **Press and Hold to Reveal**: Secrets are hidden by default and only visible while holding a dedicated reveal button.
+    - **Anti-Copy/Selection**: Right-click and text selection are disabled on sensitive content to prevent easy data capture.
+    - **Print Protection**: CSS-based protection that hides content and shows a warning when attempting to print (Ctrl+P).
 - **Secure Proxies**: All backend infrastructure is shielded behind a Next.js proxy layer.
 - **Ephemeral Storage**: Features "Burn-on-Read" and configurable expiration (1H, 1D, 1W) with automated edge cleanup.
 - **Keyed Rate Limiting**: Protects against resource exhaustion without tracking user IPs, maintaining 100% anonymity.
@@ -88,15 +93,21 @@ pnpm dev
 
 ---
 
-## 🐳 Docker Deployment
+## 🐳 Docker Orchestration
 
-To run the frontend in a containerized environment (highly recommended for production):
+DarkCodec is fully containerized for both local development and production-like environments. The stack uses `docker-compose` to orchestrate the Next.js frontend and the Hono-based worker.
+
+### Running with Docker Compose
 
 ```bash
-cd apps/web
-docker build -t darkcodec-web .
-docker run -p 3000:3000 --env-file .env darkcodec-web
+# Build and start all services (web and worker)
+docker-compose up --build
 ```
+
+- **Frontend**: Accessible at `http://localhost:3000`
+- **Worker API**: Accessible at `http://localhost:8787`
+
+The worker container uses a Debian-based environment to optimize compatibility with the `workerd` engine and provides a simulated local environment for testing.
 
 ---
 
@@ -148,4 +159,4 @@ curl https://your-worker.workers.dev/SECRET_ID
 ---
 
 ## 📄 License
-MIT License. Built with ❤️ for privacy by the DarkCodec team.
+MIT License. Built with ❤️ for privacy by the DarkCodec.
