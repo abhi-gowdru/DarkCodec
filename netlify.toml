@@ -1,0 +1,14 @@
+[build]
+  command = "pnpm build"
+  publish = "apps/web/.next"
+  base = "/"
+
+[build.environment]
+  NODE_VERSION = "20"
+  PNPM_FLAGS = "--filter=web..."
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  node_version = "20"
