@@ -96,36 +96,36 @@ const InitialLoader = () => (
 );
 
 const BackgroundAnimation = () => (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#0A0A0A] flex items-center justify-center">
-        {/* Deep ambient glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.08)_0%,transparent_70%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(99,102,241,0.05)_0%,transparent_70%)]" />
-        
-        {/* Slow rotating mesh/orbs */}
-        {[0, 1].map((i) => (
-            <motion.div
-                key={i}
-                className="absolute rounded-full blur-[100px] opacity-30"
-                style={{
-                    background: i === 0 ? 'rgba(56,189,248,0.2)' : 'rgba(99,102,241,0.2)',
-                    width: '40vw',
-                    height: '40vw',
-                }}
-                animate={{
-                    x: [0, 50, -50, 0],
-                    y: [0, -50, 50, 0],
-                    scale: [1, 1.1, 0.9, 1],
-                }}
-                transition={{
-                    duration: 15 + i * 5,
-                    repeat: Infinity,
-                    ease: "linear",
-                }}
-            />
-        ))}
-        {/* Subtle noise texture */}
-        <div className="absolute inset-0 opacity-[0.02] mix-blend-screen" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-    </div>
+  <div className="fixed inset-0 -z-10 overflow-hidden bg-[#0A0A0A] flex items-center justify-center">
+    {/* Deep ambient glow */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.08)_0%,transparent_70%)]" />
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(99,102,241,0.05)_0%,transparent_70%)]" />
+
+    {/* Slow rotating mesh/orbs */}
+    {[0, 1].map((i) => (
+      <motion.div
+        key={i}
+        className="absolute rounded-full blur-[100px] opacity-30"
+        style={{
+          background: i === 0 ? 'rgba(56,189,248,0.2)' : 'rgba(99,102,241,0.2)',
+          width: '40vw',
+          height: '40vw',
+        }}
+        animate={{
+          x: [0, 50, -50, 0],
+          y: [0, -50, 50, 0],
+          scale: [1, 1.1, 0.9, 1],
+        }}
+        transition={{
+          duration: 15 + i * 5,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
+    ))}
+    {/* Subtle noise texture */}
+    <div className="absolute inset-0 opacity-[0.02] mix-blend-screen" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+  </div>
 )
 
 
@@ -188,7 +188,7 @@ export default function Home() {
     setTurnstileToken(token);
   }, []);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
+  const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY || "";
 
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
