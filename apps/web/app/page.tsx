@@ -188,7 +188,7 @@ export default function Home() {
     setTurnstileToken(token);
   }, []);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const turnstileSiteKey = process.env.TURNSTILE_SITE_KEY || "";
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);

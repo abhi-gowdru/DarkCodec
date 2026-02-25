@@ -71,7 +71,7 @@ pnpm install
 #### Frontend (`apps/web/.env`)
 ```env
 # Cloudflare Turnstile
-TURNSTILE_SITE_KEY=your_site_key
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_site_key
 TURNSTILE_SECRET_KEY=your_secret_key
 
 # Internal Proxy (BFF)
