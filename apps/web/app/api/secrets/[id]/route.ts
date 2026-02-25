@@ -5,7 +5,7 @@ const WORKER_KEY = process.env.WORKER_API_KEY;
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { id } = await params;
