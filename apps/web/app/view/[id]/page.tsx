@@ -462,8 +462,7 @@ export default function ViewSecret() {
                                             </div>
 
                                             {/* File Meta Data Block */}
-                                            <div className={`flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/[0.02] shadow-inner w-full transition-all duration-300 ${!isPressed ? 'blur-md' : ''
-                                                }`}>
+                                            <div className="flex items-center gap-4 p-4 rounded-xl border border-white/10 bg-white/[0.02] shadow-inner w-full">
                                                 <div className="flex-shrink-0 p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
                                                     {fileMeta?.type?.startsWith('image/') ? <Eye className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                                                 </div>
@@ -483,11 +482,11 @@ export default function ViewSecret() {
                                             </div>
 
                                             {/* Actions & Progress */}
-                                            <div className="space-y-3 relative w-full">
+                                            <div className="flex gap-3 relative w-full">
                                                 <Button
                                                     onClick={handleFileDownload}
                                                     disabled={isDownloading}
-                                                    className="w-full h-12 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold transition-all disabled:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                                                    className="flex-1 h-12 rounded-xl bg-white text-black hover:bg-neutral-200 font-semibold transition-all disabled:opacity-80 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                                                 >
                                                     {isDownloading ? (
                                                         <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}>
@@ -499,19 +498,28 @@ export default function ViewSecret() {
                                                     {isDownloading ? `Decrypting Locally (${downloadProgress}%)` : "Download & Decrypt"}
                                                 </Button>
 
-                                                {/* Absolute positioning or reserved height prevents layout shift when this appears */}
-                                                <div className="h-1.5 w-full">
-                                                    {isDownloading && (
-                                                        <div className="w-full h-full bg-neutral-900 rounded-full overflow-hidden border border-white/5">
-                                                            <motion.div
-                                                                className="h-full bg-indigo-500 rounded-full"
-                                                                initial={{ width: 0 }}
-                                                                animate={{ width: `${downloadProgress}%` }}
-                                                                transition={{ ease: "linear", duration: 0.1 }}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                <Button
+                                                    onClick={() => setStep("auth")}
+                                                    variant="outline"
+                                                    className="px-4 h-12 bg-transparent border-white/10 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 text-neutral-400 transition-all rounded-xl"
+                                                    title="Lock content immediately"
+                                                >
+                                                    <Lock className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+
+                                            {/* Absolute positioning or reserved height prevents layout shift when this appears */}
+                                            <div className="h-1.5 w-full">
+                                                {isDownloading && (
+                                                    <div className="w-full h-full bg-neutral-900 rounded-full overflow-hidden border border-white/5">
+                                                        <motion.div
+                                                            className="h-full bg-indigo-500 rounded-full"
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${downloadProgress}%` }}
+                                                            transition={{ ease: "linear", duration: 0.1 }}
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -583,6 +591,6 @@ export default function ViewSecret() {
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+        </div >
     )
 }
