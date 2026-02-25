@@ -13,6 +13,7 @@ export const generateSecureUploadPolicy = async (
     region: "auto",
     endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
     credentials: { accessKeyId, secretAccessKey },
+    forcePathStyle: true, // This moves the bucket from the subdomain to the path
   });
 
   // 1. Use PutObjectCommand for a clean PUT upload
