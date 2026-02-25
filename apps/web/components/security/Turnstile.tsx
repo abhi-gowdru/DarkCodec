@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
+
+export interface TurnstileHandle {
+    reset: () => void;
+}
 
 interface TurnstileProps {
     siteKey: string;
@@ -29,9 +33,19 @@ declare global {
  * 
  * Provides automated bot protection without interrupting the user experience.
  */
-const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify, options }) => {
+const Turnstile = forwardRef<TurnstileHandle, TurnstileProps>(({ siteKey, onVerify, options }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<string | null>(null);
+
+    useImperativeHandle(ref, () => ({
+        reset: () => {
+            if (window.turnstile && widgetIdRef.current) {
+                console.log('[Turnstile] Manual reset triggered');
+                window.turnstile.reset(widgetIdRef.current);
+                onVerify(''); // Clear token on reset
+            }
+        },
+    }));
 
     useEffect(() => {
         if (!siteKey) {
@@ -97,6 +111,8 @@ const Turnstile: React.FC<TurnstileProps> = ({ siteKey, onVerify, options }) => 
     }, [siteKey, onVerify, options]);
 
     return <div ref={containerRef} className="hidden" aria-hidden="true" />;
-};
+});
+
+Turnstile.displayName = 'Turnstile';
 
 export default Turnstile;

@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { motion, AnimatePresence } from "framer-motion"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import {
   FileText,
   MessageSquare,
@@ -32,7 +32,7 @@ import {
 import Link from "next/link"
 import { FaWhatsapp, FaTelegramPlane, FaSms, FaEnvelope } from "react-icons/fa"
 import { exportKeyToBase64Url, encryptData, generateSymmetricKey } from "./utils/crypto"
-import Turnstile from "@/components/security/Turnstile"
+import Turnstile, { TurnstileHandle } from "@/components/security/Turnstile"
 
 
 // --- Enterprise Splash Screen ---
@@ -96,34 +96,39 @@ const InitialLoader = () => (
 );
 
 const BackgroundAnimation = () => (
-  <div className="fixed inset-0 -z-10 overflow-hidden bg-slate-950 flex items-center justify-center">
-    {/* Base Gradient */}
-    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(30,58,138,0.15)_0%,transparent_100%)]" />
-
-    {/* Expanding Sonar Rings */}
-    {[0, 1, 2].map((i) => (
-      <motion.div
-        key={i}
-        className="absolute rounded-full border border-blue-500/10"
-        initial={{ width: "20vw", height: "20vw", opacity: 0 }}
-        animate={{
-          width: ["20vw", "100vw"],
-          height: ["20vw", "100vw"],
-          opacity: [0, 0.2, 0],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "linear",
-          delay: i * 2.6, // Staggers the rings
-        }}
-      />
-    ))}
-
-    {/* Static noise overlay for texture */}
-    <div className="absolute inset-0 opacity-[0.015] mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
-  </div>
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#0A0A0A] flex items-center justify-center">
+        {/* Deep ambient glow */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.08)_0%,transparent_70%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(99,102,241,0.05)_0%,transparent_70%)]" />
+        
+        {/* Slow rotating mesh/orbs */}
+        {[0, 1].map((i) => (
+            <motion.div
+                key={i}
+                className="absolute rounded-full blur-[100px] opacity-30"
+                style={{
+                    background: i === 0 ? 'rgba(56,189,248,0.2)' : 'rgba(99,102,241,0.2)',
+                    width: '40vw',
+                    height: '40vw',
+                }}
+                animate={{
+                    x: [0, 50, -50, 0],
+                    y: [0, -50, 50, 0],
+                    scale: [1, 1.1, 0.9, 1],
+                }}
+                transition={{
+                    duration: 15 + i * 5,
+                    repeat: Infinity,
+                    ease: "linear",
+                }}
+            />
+        ))}
+        {/* Subtle noise texture */}
+        <div className="absolute inset-0 opacity-[0.02] mix-blend-screen" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
+    </div>
 )
+
+
 export function TabsLine({ activeTab, onValueChange }: { activeTab: string; onValueChange: (value: string) => void }) {
   const tabs = [
     { id: "message", label: "Message", icon: MessageSquare },
@@ -132,7 +137,7 @@ export function TabsLine({ activeTab, onValueChange }: { activeTab: string; onVa
   ];
 
   return (
-    <div className="flex w-full p-1.5 bg-slate-950/80 backdrop-blur-2xl border border-slate-800/80 rounded-2xl shadow-[inset_0_1px_4px_rgba(0,0,0,0.4)] relative">
+    <div className="flex w-full p-1.5 bg-black/80 backdrop-blur-2xl border border-slate-800/80 rounded-2xl shadow-[inset_0_1px_4px_rgba(0,0,0,0.4)] relative">
       {tabs.map((tab) => {
         const isActive = activeTab === tab.id;
         const Icon = tab.icon;
@@ -178,6 +183,10 @@ export default function Home() {
   const [generatedLink, setGeneratedLink] = useState<string | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const turnstileRef = useRef<TurnstileHandle>(null);
+  const onVerifyToken = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
@@ -274,6 +283,7 @@ export default function Home() {
 
       const data = await response.json();
       setTurnstileToken(null); // Reset for next use
+      turnstileRef.current?.reset(); // Trigger fresh token generation
 
       // 5. Export Key & make it URL-safe (Base64URL) so apps don't truncate it
       let exportedKey = await exportKeyToBase64Url(key);
@@ -396,6 +406,7 @@ export default function Home() {
       if (!dbRes.ok) throw new Error("Failed to finalize vault record");
       const data = await dbRes.json();
       setTurnstileToken(null);
+      turnstileRef.current?.reset();
 
       // 7. Generate final Base64URL key and Share Link
       let exportedKey = await exportKeyToBase64Url(key);
@@ -424,6 +435,8 @@ export default function Home() {
   const resetVault = () => {
     setGeneratedLink(null);
     setIsConsentGiven(false);
+    setError(null);
+    turnstileRef.current?.reset();
   };
 
 
@@ -433,8 +446,9 @@ export default function Home() {
     <div className="relative min-h-screen text-slate-50 font-sans selection:bg-blue-500/30 flex flex-col">
       <BackgroundAnimation />
       <Turnstile
+        ref={turnstileRef}
         siteKey={turnstileSiteKey}
-        onVerify={(token) => setTurnstileToken(token)}
+        onVerify={onVerifyToken}
       />
       <AnimatePresence mode="wait">
         {isAppLoading ? <InitialLoader key="splash-screen" /> : (
@@ -452,10 +466,12 @@ export default function Home() {
               </p>
             </motion.div>
             <motion.div layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }} className="w-full max-w-md">
-              <Card className="border-slate-800/60 bg-slate-900/50 backdrop-blur-2xl shadow-2xl shadow-blue-900/5 ring-1 ring-white/5 w-full max-w-md">
+              <Card className="border-slate-800/60 bg-black/40 backdrop-blur-2xl shadow-2xl shadow-blue-900/5 ring-1 ring-white/5 w-full max-w-md">
                 <CardHeader className="pt-6 px-6">
                   <TabsLine activeTab={activeTab} onValueChange={(val) => {
                     setActiveTab(val);
+                    setError(null);
+                    turnstileRef.current?.reset();
                     if (generatedLink) resetVault();
                   }} />
                 </CardHeader>
@@ -581,11 +597,11 @@ export default function Home() {
                                   value={messageText}
                                   onChange={(e) => setMessageText(e.target.value)}
                                   placeholder="Enter passwords, private notes, or sensitive data you want to share safely..."
-                                  className="min-h-[120px] bg-slate-950/80 border-slate-700/60 focus-visible:ring-1 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 text-slate-100 placeholder:text-slate-600 resize-none shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] rounded-xl transition-all duration-300"
+                                  className="min-h-[120px] bg-black/40 border-slate-700/60 focus-visible:ring-1 focus-visible:ring-blue-500/50 focus-visible:border-blue-500 text-slate-100 placeholder:text-slate-600 resize-none shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] rounded-xl transition-all duration-300"
                                 />
                               </div>
 
-                              <div className="flex flex-col rounded-xl border border-slate-700/60 bg-slate-950/40 shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)] overflow-hidden divide-y divide-slate-800/60">
+                              <div className="flex flex-col rounded-xl border border-slate-700/60 bg-black/40 shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)] overflow-hidden divide-y divide-slate-800/60">
                                 <div className="flex items-center justify-between p-3.5 sm:p-4 cursor-pointer hover:bg-slate-800/20 transition-colors group" onClick={() => setIsBurnAfterRead(!isBurnAfterRead)}>
                                   <div className="flex items-center gap-3.5">
                                     <div className={`p-2 rounded-lg transition-all duration-300 ${isBurnAfterRead ? 'bg-orange-500/20 text-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.2)]' : 'bg-slate-900 text-slate-500'}`}>
@@ -696,7 +712,7 @@ export default function Home() {
                           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-5">
                             <div>
                               <CardTitle className="text-lg font-semibold flex items-center gap-2 text-slate-100">
-                                <FileText className="w-5 h-5 text-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.5)]" />
+                                <FileText className="w-5 h-5 text-blue-400" />
                                 Lock a File
                               </CardTitle>
                               <CardDescription className="text-slate-400 mt-1.5 text-sm">
@@ -713,10 +729,10 @@ export default function Home() {
                             <div className="space-y-5">
                               {/* File Selection / Progress Area */}
                               {selectedFile ? (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl border border-blue-500/30 bg-blue-500/5 relative overflow-hidden">
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl border border-blue-500/30 bg-black/5 relative overflow-hidden">
                                   <div className="flex items-center justify-between mb-3 relative z-10">
                                     <div className="flex items-center gap-3 overflow-hidden">
-                                      <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400">
+                                      <div className="p-2 rounded-lg bg-black/20 text-blue-400">
                                         <FileText className="w-5 h-5" />
                                       </div>
                                       <div className="flex flex-col truncate">
@@ -750,7 +766,7 @@ export default function Home() {
                                   )}
                                 </motion.div>
                               ) : (
-                                <motion.div className="relative w-full rounded-2xl border-2 border-dashed border-slate-700/60 bg-slate-950/40 p-8 text-center cursor-pointer overflow-hidden group shadow-[inset_0_2px_20px_rgba(0,0,0,0.2)]" whileHover={{ scale: 1.015, borderColor: "rgba(59, 130, 246, 0.5)", backgroundColor: "rgba(30, 58, 138, 0.15)" }} whileTap={{ scale: 0.98 }}>
+                                <motion.div className="relative w-full rounded-2xl border-2 border-dashed border-blue-500/60 bg-black/40 p-8 text-center cursor-pointer overflow-hidden group shadow-[inset_0_2px_20px_rgba(0,0,0,0.2)]" whileHover={{ scale: 1.015, borderColor: "rgba(59, 130, 246, 0.5)", backgroundColor: "rgba(30, 58, 138, 0.15)" }} whileTap={{ scale: 0.98 }}>
                                   <input
                                     type="file"
                                     onChange={(e) => {
@@ -855,7 +871,7 @@ export default function Home() {
 
 export function ConsentCheckbox({ checked, onChange }: { checked: boolean; onChange: (checked: boolean) => void }) {
   return (
-    <div className="flex items-center gap-3 p-4 mt-2 rounded-xl bg-slate-950/40 border border-slate-800/60 shadow-inner cursor-pointer group" onClick={() => onChange(!checked)}>
+    <div className="flex items-center gap-3 p-4 mt-2 rounded-xl bg-black/40 border border-slate-800/60 shadow-inner cursor-pointer group" onClick={() => onChange(!checked)}>
       <div className={`relative w-5 h-5 shrink-0 rounded-[6px] border flex items-center justify-center transition-colors duration-300 ${checked ? 'bg-blue-600 border-blue-600 shadow-[0_0_10px_rgba(37,99,235,0.4)]' : 'bg-slate-900 border-slate-700 group-hover:border-blue-500/50'}`}>
         <motion.div initial={false} animate={{ opacity: checked ? 1 : 0, scale: checked ? 1 : 0.5 }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
           <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
